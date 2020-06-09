@@ -1,0 +1,19 @@
+# depslib dependency file v1.0
+1591678893 source:z:\onsgui\main.cpp
+	<tchar.h>
+	<windows.h>
+	<SDL2/SDL.h>
+	<iostream>
+
+1591674669 source:z:\onsgui\mein.cpp
+	<windows.h>
+
+1591674669 source:z:\rui\mein.cpp
+	<windows.h>
+
+1591679312 source:z:\rui\main.cpp
+	<tchar.h>
+	<windows.h>
+	<SDL2/SDL.h>
+	<iostream>
+
