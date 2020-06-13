@@ -15,6 +15,49 @@ LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
 /*  Make the class name into a global variable  */
 TCHAR szClassName[ ] = _T("RUIClass");
 
+SDL_Rect cube;
+SDL_Renderer* renderer = NULL;
+bool isCubeGoingRight = true;
+bool isCubeGoingDown = true;
+
+int Render(void *data) {
+    for(int i=0; i<1000; i++) {
+        //Animation
+        if(isCubeGoingRight) {
+            ++cube.x;
+        } else {
+            --cube.x;
+        }
+        if(isCubeGoingDown) {
+            ++cube.y;
+        } else {
+            --cube.y;
+        }
+        if(cube.x >= 500) {
+            isCubeGoingRight = false;
+        } else if(cube.x <= 0) {
+            isCubeGoingRight = true;
+        }
+        if(cube.y >= 300) {
+            isCubeGoingDown = false;
+        } else if(cube.y <= 0) {
+            isCubeGoingDown = true;
+        }
+    // Clear the window and make it all green
+    SDL_RenderClear( renderer );
+    // Change color to blue
+    SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+    // Render our "cube"
+    SDL_RenderFillRect( renderer, &cube );
+    // Change color to green
+    SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
+    // Render the changes above
+    SDL_RenderPresent( renderer);
+    SDL_Delay( 16 );
+    }
+
+}
+
 int WINAPI WinMain (HINSTANCE hThisInstance,
                      HINSTANCE hPrevInstance,
                      LPSTR lpszArgument,
@@ -97,21 +140,20 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
         std::cerr << "SDL CreateWindowFrom ERROR: " << SDL_GetError() << std::endl;
         return 0;
     }
-    SDL_Renderer* renderer = SDL_CreateRenderer(sdl_window, -1, 0);
+    renderer = SDL_CreateRenderer(sdl_window, -1, 0);
     if (renderer == NULL) {
         std::cerr << "SDL: failed to create renderer: " << SDL_GetError();
     }
 
     // Init vars
-    SDL_Rect cube;
+
     cube.x = 0;
 	cube.y = 0;
 	cube.w = 20;
 	cube.h = 20;
     bool loop = true;
     //Stuff for the animation
-    bool isCubeGoingRight = true;
-    bool isCubeGoingDown = true;
+    SDL_Thread* threadID = SDL_CreateThread(Render, "Render", NULL);
 
     //Our very own main loop
 	while ( loop )
@@ -143,38 +185,9 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 			}
 		}
 
-        //Animation
-        if(isCubeGoingRight) {
-            ++cube.x;
-        } else {
-            --cube.x;
-        }
-        if(isCubeGoingDown) {
-            ++cube.y;
-        } else {
-            --cube.y;
-        }
-        if(cube.x >= 500) {
-            isCubeGoingRight = false;
-        } else if(cube.x <= 0) {
-            isCubeGoingRight = true;
-        }
-        if(cube.y >= 300) {
-            isCubeGoingDown = false;
-        } else if(cube.y <= 0) {
-            isCubeGoingDown = true;
-        }
 
-        // Clear the window and make it all green
-        SDL_RenderClear( renderer );
-        // Change color to blue
-        SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
-        // Render our "cube"
-        SDL_RenderFillRect( renderer, &cube );
-        // Change color to green
-        SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
-        // Render the changes above
-        SDL_RenderPresent( renderer);
+
+        //Render();
 
 		// Add a 16msec delay to make our game run at ~60 fps
 		SDL_Delay( 16 );
@@ -200,6 +213,14 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             // disallow screen saver while emulating (doesn't work if password protected)
             if ((((wParam & 0xFFF0) == SC_SCREENSAVE) || ((wParam & 0xFFF0) == SC_MONITORPOWER)))
                 return 0;*/
+        /*case WM_PAINT:
+            {
+                PAINTSTRUCT ps;
+                HDC hdc = BeginPaint(hwnd, &ps);
+                //Render();
+                EndPaint(hwnd, &ps);
+            }
+            break;*/
         default:                      /* for messages that we don't deal with */
             LRESULT a = DefWindowProc (hwnd, message, wParam, lParam);
             //std::cout << 'X' << message << std::endl;
