@@ -30,6 +30,8 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=c++11" />
+			<Add directory="C:/SDL2-2.0.12/x86_64-w64-mingw32/include" />
 		</Compiler>
 		<Linker>
 			<Add library="gdi32" />
@@ -38,13 +40,11 @@
 			<Add library="comctl32" />
 			<Add library="SDL2" />
 			<Add library="SDL2main" />
+			<Add directory="C:/SDL2-2.0.12/x86_64-w64-mingw32/lib" />
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Unit filename="mein.cpp" />
 		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
 			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>
