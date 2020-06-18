@@ -17,11 +17,12 @@
 	<SDL2/SDL.h>
 	<iostream>
 
-1592423956 source:c:\users\fuumarumota\programming\rui\main.cpp
+1592458632 source:c:\users\fuumarumota\programming\rui\main.cpp
 	"wx/wxprec.h"
 	"wx/wx.h"
 	<wx/thread.h>
 	<SDL2/SDL.h>
+	"mingw.thread.h"
 
 1592108252 source:c:\users\fuumarumota\programming\rui\mein.cpp
 	<windows.h>
@@ -3371,4 +3372,30 @@
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
+
+1592454117 c:\users\fuumarumota\programming\rui\mingw.thread.h
+	<thread>
+	<cstddef>
+	<cerrno>
+	<exception>
+	<system_error>
+	<functional>
+	<tuple>
+	<chrono>
+	<memory>
+	<iosfwd>
+	<utility>
+	"mingw.invoke.h"
+	<windows.h>
+	<synchapi.h>
+	<handleapi.h>
+	<sysinfoapi.h>
+	<processthreadsapi.h>
+	<process.h>
+	<cstdio>
+
+1592456109 c:\users\fuumarumota\programming\rui\mingw.invoke.h
+	<type_traits>
+	<utility>
+	<functional>
 

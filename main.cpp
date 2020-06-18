@@ -10,7 +10,7 @@
 
 #include <wx/thread.h>
 #include <SDL2/SDL.h>
-
+#include "mingw.thread.h"
 
 /*******************************************************************
     SDL THREAD THREAD CLASS
@@ -47,114 +47,97 @@ wxThread::ExitCode MyThread::Entry()
 class MyPanel : public wxPanel
 {
 public:
-    MyPanel(wxWindow *parent) : wxPanel (parent, wxID_ANY){
-
-        SDL_Init(SDL_INIT_EVERYTHING);
-        window = SDL_CreateWindowFrom(this->GetHandle());
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-
-        m_timer.SetOwner(this);
-        m_timer.Start(15);
-        thread = new MyThread( this );
-
-        cube.x = 0;
-        cube.y = 0;
-        cube.w = 20;
-        cube.h = 20;
-
-        if( thread->Create()==wxTHREAD_NO_ERROR )
-        {
-            thread->Run();
-        }
-    }
-    ~MyPanel(){
-        renderer = nullptr;
-        SDL_Quit();
-    }
-
     MyThread *thread;
-    wxTimer m_timer;
+    std::thread *render_thread;
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
-    SDL_Rect cube;
-
-    bool isCubeGoingRight = true;
-    bool isCubeGoingDown = true;
 
     bool sdl_quit = false;
-    void OnThreadEvent(wxThreadEvent &event);
+    MyPanel(wxWindow *parent);
+    ~MyPanel();
     void OnTimer(wxTimerEvent &event);
-
-   DECLARE_EVENT_TABLE()
+    void render();
 };
 
-BEGIN_EVENT_TABLE(MyPanel, wxPanel)
-    EVT_THREAD(wxID_ANY, MyPanel::OnThreadEvent)
-    EVT_TIMER(-1,MyPanel::OnTimer)
-END_EVENT_TABLE()
 
 
-void MyPanel::OnThreadEvent(wxThreadEvent &event)
-{
+MyPanel::MyPanel(wxWindow *parent) : wxPanel (parent, wxID_ANY){
 
+    SDL_Init(SDL_INIT_EVERYTHING);
+    window = SDL_CreateWindowFrom(this->GetHandle());
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    render_thread = new std::thread(&MyPanel::render, this);
+
+}
+
+
+MyPanel::~MyPanel(){
+    sdl_quit = true;
+    render_thread->join();
+    renderer = nullptr;
+    SDL_Quit();
+}
+
+void MyPanel::render(){
+
+
+    SDL_Rect cube;
+    SDL_Color color;
+    SDL_Color red = {255,0,0};
+    SDL_Color blue = {0,0,255};
+    int dirx = 1;
+    int diry = 1;
+    color = blue;
+    cube.x = 0;
+    cube.y = 0;
+    cube.w = 20;
+    cube.h = 20;
     SDL_Event evt;
 	while (!sdl_quit){
-        while (SDL_PollEvent(&evt)) {
-
-
+        //Something so freakin' weird: SDL Does not catch arrows or enter keys (among others) when inside thread... WHYYY!?
+        //All other keys are catched just fine.
+        while (SDL_PollEvent(&evt))
+        {
             if ( evt.type == SDL_KEYDOWN )
             {
-                std::cout << "KeyPress" << std::endl;
+                std::cout << "Key Down";
+                color = red;
+            }
+            else if ( evt.type == SDL_KEYUP )
+            {
+                std::cout << "Key Up";
+                color = blue;
             }
         }
 
+         if(cube.x >= 560) {
+            dirx = -1;
+        } else if(cube.x <= 0) {
+            dirx = 1;
+        }
+        if(cube.y >= 300) {
+            diry = -1;
+        } else if(cube.y <= 0) {
+            diry = 1;
+        }
+
+        cube.x += (1 * dirx);
+        cube.y += (1 * diry);
+
+        SDL_RenderClear( renderer );
+        // Render our "cube"
+        SDL_SetRenderDrawColor( renderer,color.r, color.g, color.b, 255 );
+        SDL_RenderFillRect( renderer, &cube );
+        //Background
+        SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
+        // Render the changes above
+        SDL_RenderPresent( renderer);
+
         SDL_Delay(16);
-
 	}
-    std::cout << "Quit" << std::endl;
 
 }
 
-
-void MyPanel::OnTimer(wxTimerEvent &event)
-{
-    /*This event seems to run even if the GUI is waiting on events. I use this kind of a update->render thread, while
-    the input is handled by another thread.
-
-    You see the GUI thread not blocking the rendering routine. It fills you with determination. */
-
-    if(isCubeGoingRight) {
-        ++cube.x;
-    } else {
-        --cube.x;
-    }
-    if(isCubeGoingDown) {
-        ++cube.y;
-    } else {
-        --cube.y;
-    }
-    if(cube.x >= 500) {
-        isCubeGoingRight = false;
-    } else if(cube.x <= 0) {
-        isCubeGoingRight = true;
-    }
-    if(cube.y >= 300) {
-        isCubeGoingDown = false;
-    } else if(cube.y <= 0) {
-        isCubeGoingDown = true;
-    }
-
-    SDL_RenderClear( renderer );
-    // Change color to blue
-    SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
-    // Render our "cube"
-    SDL_RenderFillRect( renderer, &cube );
-    // Change color to green
-    SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
-    // Render the changes above
-    SDL_RenderPresent( renderer);
-
-}
 
 /*******************************************************************
     MAIN FRAME CLASS
@@ -219,19 +202,17 @@ MyFrame::MyFrame(const wxString& title)
 
 #if wxUSE_STATUSBAR
     // create a status bar just for fun (by default with 1 pane only)
-    CreateStatusBar(2);
-    SetStatusText("Welcome to wxWidgets!");
+    CreateStatusBar(1);
+    SetStatusText("You see the GUI thread not blocking the rendering routine. It fills you with determination!");
 #endif // wxUSE_STATUSBAR
 
     m_pan = new MyPanel(this);
-
 }
 
 // event handlers
 
 void MyFrame::close(){
 
-    m_pan->sdl_quit = true;
     Destroy();
 
 }
@@ -276,3 +257,4 @@ bool MyApp::OnInit()
 }
 
 IMPLEMENT_APP(MyApp);
+
