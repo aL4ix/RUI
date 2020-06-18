@@ -17,7 +17,7 @@
 	<SDL2/SDL.h>
 	<iostream>
 
-1592461967 source:c:\users\fuumarumota\programming\rui\main.cpp
+1592463475 source:c:\users\fuumarumota\programming\rui\main.cpp
 	"wx/wxprec.h"
 	"wx/wx.h"
 	<wx/thread.h>

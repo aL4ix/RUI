@@ -12,34 +12,6 @@
 #include <SDL2/SDL.h>
 #include "mingw.thread.h"
 
-/*******************************************************************
-    SDL THREAD THREAD CLASS
-*******************************************************************/
-// A thread class that will periodically send events to the GUI thread,
-// we use this as the SDL Events thread.
-
-class MyThread : public wxThread
-{
-protected:
-   wxEvtHandler* m_parent;
-
-public:
-    MyThread(wxEvtHandler *parent) : wxThread(), m_parent(parent)
-    {
-    };
-
-   ExitCode Entry();
-};
-
-
-wxThread::ExitCode MyThread::Entry()
-{
-
-    wxThreadEvent *evt = new wxThreadEvent(wxEVT_THREAD);
-    m_parent->QueueEvent(evt);
-    return (wxThread::ExitCode) 0;
-}
-
 /********************************************************************
     SDL PANEL CLASS
 *******************************************************************/
@@ -47,11 +19,10 @@ wxThread::ExitCode MyThread::Entry()
 class MyPanel : public wxWindow
 {
 public:
-    MyThread *thread;
+    //MyThread *thread;
     std::thread *render_thread;
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
-
     bool sdl_quit = false;
     MyPanel(wxWindow *parent);
     ~MyPanel();
@@ -60,18 +31,17 @@ public:
 };
 
 
-
-MyPanel::MyPanel(wxWindow *parent) : wxWindow (parent, wxID_ANY){
-
+MyPanel::MyPanel(wxWindow *parent) : wxWindow (parent, wxID_ANY)
+{
     SDL_Init(SDL_INIT_EVERYTHING);
     window = SDL_CreateWindowFrom(this->GetHandle());
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     render_thread = new std::thread(&MyPanel::render, this);
-
 }
 
 
-MyPanel::~MyPanel(){
+MyPanel::~MyPanel()
+{
     sdl_quit = true;
     render_thread->join();
     renderer = nullptr;
@@ -79,8 +49,8 @@ MyPanel::~MyPanel(){
 }
 
 
-void MyPanel::render(){
-
+void MyPanel::render()
+{
 
     SDL_Rect cube;
     SDL_Color color;
@@ -96,9 +66,6 @@ void MyPanel::render(){
     SDL_Event evt;
 
 	while (!sdl_quit){
-        //Something so freakin' weird: SDL Does not catch arrows or enter keys (among others) when inside thread... WHYYY!?
-        //All other keys are catched just fine.
-
         while (SDL_PollEvent(&evt))
         {
             if ( evt.type == SDL_KEYDOWN )
@@ -135,10 +102,8 @@ void MyPanel::render(){
         SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
         // Render the changes above
         SDL_RenderPresent( renderer);
-
         SDL_Delay(16);
 	}
-
 }
 
 
@@ -151,9 +116,7 @@ class MyFrame : public wxFrame
 {
 public:
     MyFrame(const wxString& title);
-    void close();
     void OnQuit(wxCommandEvent& event);
-    void OnAbout(wxCommandEvent& event);
     void OnClose (wxCloseEvent &event);
 
 private:
@@ -166,14 +129,11 @@ private:
 enum
 {
     // menu items
-    Minimal_Quit = wxID_EXIT,
-    Minimal_About = wxID_ABOUT
+    Minimal_Quit = wxID_EXIT
 };
 
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(Minimal_Quit,  MyFrame::OnQuit)
-    EVT_MENU(Minimal_About, MyFrame::OnAbout)
-    EVT_CLOSE(MyFrame::OnClose)
 END_EVENT_TABLE()
 
 
@@ -189,15 +149,11 @@ MyFrame::MyFrame(const wxString& title)
     wxMenu *fileMenu = new wxMenu;
 
     // the "About" item should be in the help menu
-    wxMenu *helpMenu = new wxMenu;
-    helpMenu->Append(Minimal_About, "&About\tF1", "Show about dialog");
-
     fileMenu->Append(Minimal_Quit, "E&xit\tAlt-X", "Quit this program");
 
     // now append the freshly created menu to the menu bar...
     wxMenuBar *menuBar = new wxMenuBar();
     menuBar->Append(fileMenu, "&File");
-    menuBar->Append(helpMenu, "&Help");
 
     // ... and attach this menu bar to the frame
     SetMenuBar(menuBar);
@@ -212,26 +168,10 @@ MyFrame::MyFrame(const wxString& title)
     m_pan = new MyPanel(this);
 }
 
-// event handlers
-
-void MyFrame::close(){
-
-    Destroy();
-
-}
 void MyFrame::OnQuit(wxCommandEvent &event)
 {
     // true is to force the frame to close
     Close(true);
-    close();
-}
-
-void MyFrame::OnClose(wxCloseEvent &event){
-    close();
-}
-
-void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
-{
 }
 
 /*******************************************************************
