@@ -44,7 +44,7 @@ wxThread::ExitCode MyThread::Entry()
     SDL PANEL CLASS
 *******************************************************************/
 
-class MyPanel : public wxPanel
+class MyPanel : public wxWindow
 {
 public:
     MyThread *thread;
@@ -61,7 +61,7 @@ public:
 
 
 
-MyPanel::MyPanel(wxWindow *parent) : wxPanel (parent, wxID_ANY){
+MyPanel::MyPanel(wxWindow *parent) : wxWindow (parent, wxID_ANY){
 
     SDL_Init(SDL_INIT_EVERYTHING);
     window = SDL_CreateWindowFrom(this->GetHandle());
@@ -78,6 +78,7 @@ MyPanel::~MyPanel(){
     SDL_Quit();
 }
 
+
 void MyPanel::render(){
 
 
@@ -93,9 +94,11 @@ void MyPanel::render(){
     cube.w = 20;
     cube.h = 20;
     SDL_Event evt;
+
 	while (!sdl_quit){
         //Something so freakin' weird: SDL Does not catch arrows or enter keys (among others) when inside thread... WHYYY!?
         //All other keys are catched just fine.
+
         while (SDL_PollEvent(&evt))
         {
             if ( evt.type == SDL_KEYDOWN )
@@ -103,19 +106,19 @@ void MyPanel::render(){
                 std::cout << "Key Down";
                 color = red;
             }
-            else if ( evt.type == SDL_KEYUP )
+            if ( evt.type == SDL_KEYUP )
             {
                 std::cout << "Key Up";
                 color = blue;
             }
         }
 
-         if(cube.x >= 560) {
+         if(cube.x >= 600) {
             dirx = -1;
         } else if(cube.x <= 0) {
             dirx = 1;
         }
-        if(cube.y >= 300) {
+        if(cube.y >= 380) {
             diry = -1;
         } else if(cube.y <= 0) {
             diry = 1;
@@ -250,7 +253,7 @@ bool MyApp::OnInit()
 
     // create the main application window
     MyFrame *frame = new MyFrame("Minimal wxWidgets App");
-    frame->SetSize(wxSize(600,400));
+    frame->SetSize(wxSize(640,480));
     frame->Show(true);
     SetTopWindow(frame);
     return true;
